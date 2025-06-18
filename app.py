@@ -45,19 +45,27 @@ if start_year > end_year:
     st.stop()
 
 # 3.  Build the image  -------------------------------------------
+TOTAL_WIDTH_PX = 1200          # fixed canvas width for comparability
+HEIGHT_PX      = height_px     # user slider still controls height
+
+# Subset colours for chosen period
 idx0 = YEARS.index(int(start_year))
 idx1 = YEARS.index(int(end_year)) + 1
 sub_cols = COLORS[idx0:idx1]
 n_stripes = len(sub_cols)
 
-img_w = width_px * n_stripes
-img_h = height_px
+# Compute auto stripe width so stripes fill the whole canvas
+stripe_px = max(1, TOTAL_WIDTH_PX // n_stripes)
+img_w     = stripe_px * n_stripes          # may be a few px < TOTAL_WIDTH_PX
+img_h     = HEIGHT_PX
+
 img   = Image.new("RGB", (img_w, img_h), "white")
 draw  = ImageDraw.Draw(img)
 
 for i, hex_color in enumerate(sub_cols):
-    x0 = i * width_px
-    draw.rectangle([x0, 0, x0 + width_px, img_h], fill=hex_color)
+    x0 = i * stripe_px
+    draw.rectangle([x0, 0, x0 + stripe_px, img_h], fill=hex_color)
+
 
 # 4.  Display  ----------------------------------------------------
 st.title("Personal Climate-Stripes")
