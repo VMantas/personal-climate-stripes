@@ -20,63 +20,58 @@ COLORS = [c for _, _, c in STRIPES]
 # 2.  Sidebar controls  ------------------------------------------
 st.sidebar.header("Stripe settings")
 
-width_px  = st.sidebar.slider("Stripe width (pixels)", 8, 40, 20)
-height_px = st.sidebar.slider("Stripe height (pixels)", 80, 300, 120)
+# Fixed overall canvas size for strict comparability
+TOTAL_WIDTH_PX  = st.sidebar.number_input(
+    "Overall bar width (px)", min_value=600, max_value=2000, value=1200, step=100
+)
+TOTAL_HEIGHT_PX = st.sidebar.number_input(
+    "Bar height (px)", min_value=80,  max_value=400,  value=150,  step=10
+)
 
-# --- year-range inputs ------------------------------------------
 st.sidebar.markdown("### Year range")
-
-# valid bounds from the hard-coded list
 year_min, year_max = YEARS[0], YEARS[-1]
 
 start_year = st.sidebar.number_input(
     "Start year", min_value=year_min, max_value=year_max,
     value=year_min, step=1, format="%d"
 )
-
 end_year = st.sidebar.number_input(
     "End year", min_value=year_min, max_value=year_max,
     value=year_max, step=1, format="%d"
 )
 
-# guard against invalid input
 if start_year > end_year:
     st.sidebar.error("Start year must be ≤ end year.")
     st.stop()
 
-# 3.  Build the image  -------------------------------------------
-TOTAL_WIDTH_PX = 1200          # fixed canvas width for comparability
-HEIGHT_PX      = height_px     # user slider still controls height
-
-# Subset colours for chosen period
+# 3.  Build the fixed-size image  ---------------------------------
 idx0 = YEARS.index(int(start_year))
 idx1 = YEARS.index(int(end_year)) + 1
 sub_cols = COLORS[idx0:idx1]
-n_stripes = len(sub_cols)
+n_years  = len(sub_cols)
 
-# Compute auto stripe width so stripes fill the whole canvas
-stripe_px = max(1, TOTAL_WIDTH_PX // n_stripes)
-img_w     = stripe_px * n_stripes          # may be a few px < TOTAL_WIDTH_PX
-img_h     = HEIGHT_PX
+# Stripe width is calculated so all stripes fill the canvas exactly
+stripe_px = max(1, TOTAL_WIDTH_PX // n_years)          # integer px
+img_w     = stripe_px * n_years                        # may be a few px < TOTAL_WIDTH_PX
+img_h     = TOTAL_HEIGHT_PX
 
-img   = Image.new("RGB", (img_w, img_h), "white")
-draw  = ImageDraw.Draw(img)
+img  = Image.new("RGB", (img_w, img_h), "white")
+draw = ImageDraw.Draw(img)
 
-for i, hex_color in enumerate(sub_cols):
+for i, color in enumerate(sub_cols):
     x0 = i * stripe_px
-    draw.rectangle([x0, 0, x0 + stripe_px, img_h], fill=hex_color)
+    draw.rectangle([x0, 0, x0 + stripe_px, img_h], fill=color)
 
-
-# 4.  Display  ----------------------------------------------------
+# 4.  Display & download  -----------------------------------------
 st.title("Personal Climate-Stripes")
-st.caption("Source: NASA GISTEMP v4  (baseline 1951-1980)")
+st.caption("Source: NASA GISTEMP v4 (baseline 1951-1980)")
 
-st.image(img, use_container_width=True)   # updated param name
+st.image(img, use_container_width=True)        # fills Streamlit column
 
-# 5.  Download button  -------------------------------------------
 st.download_button(
-    "Download PNG",
+    label="Download PNG",
     data=img.tobytes(),
     file_name=f"stripes_{start_year}_{end_year}.png",
     mime="image/png"
 )
+
