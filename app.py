@@ -66,19 +66,28 @@ for i, hex_col in enumerate(sub_cols):
     draw.rectangle([x0, 0, x0 + STRIPE_PX, img_h], fill=hex_col)
 
 # -----------------------------------------------------------------
-# 5.  Display & download  -----------------------------------------
-st.title("Personal Climate Stripes")
-st.caption("Source: NASA GISTEMP v4 (baseline 1951-1980)")
+# -----------------------------------------------------------------
+# 5.  Encode, display, and download  -------------------------------
+from io import BytesIO
 
-# Allow horizontal scrolling if bar wider than viewport
-st.image(img, use_container_width=False)
+# Encode to PNG in memory
+buf = BytesIO()
+img.save(buf, format="PNG")
+png_bytes = buf.getvalue()
+
+st.title("Personal Climate Stripes")
+st.caption("Source: NASA GISTEMP v4 (baseline 1951–1980)")
+
+# Show image (PIL object works too, but bytes ensures identical output)
+st.image(png_bytes, use_container_width=False)
 
 st.download_button(
     "Download PNG",
-    data=img.tobytes(),
-    file_name=f"stripes_{start_year}_{end_year}.jpg",
+    data=png_bytes,
+    file_name=f"stripes_{start_year}_{end_year}.png",
     mime="image/png"
 )
+
 
 
 
