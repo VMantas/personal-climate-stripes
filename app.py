@@ -20,14 +20,14 @@ COLORS = [c for _, _, c in STRIPES]
 # 2.  Sidebar controls  ------------------------------------------
 st.sidebar.header("Stripe settings")
 
-# Fixed overall canvas size for strict comparability
-TOTAL_WIDTH_PX  = st.sidebar.number_input(
-    "Overall bar width (px)", min_value=600, max_value=2000, value=1200, step=100
+STRIPE_PX = st.sidebar.number_input(
+    "Stripe width (px)", min_value=8, max_value=40, value=20, step=1
 )
-TOTAL_HEIGHT_PX = st.sidebar.number_input(
-    "Bar height (px)", min_value=80,  max_value=400,  value=150,  step=10
+BAR_HEIGHT_PX = st.sidebar.number_input(
+    "Stripe height (px)", min_value=80, max_value=400, value=150, step=10
 )
 
+# Year-range inputs
 st.sidebar.markdown("### Year range")
 year_min, year_max = YEARS[0], YEARS[-1]
 
@@ -44,34 +44,34 @@ if start_year > end_year:
     st.sidebar.error("Start year must be ≤ end year.")
     st.stop()
 
-# 3.  Build the fixed-size image  ---------------------------------
+# 3.  Build the image  -------------------------------------------
 idx0 = YEARS.index(int(start_year))
 idx1 = YEARS.index(int(end_year)) + 1
 sub_cols = COLORS[idx0:idx1]
 n_years  = len(sub_cols)
 
-# Stripe width is calculated so all stripes fill the canvas exactly
-stripe_px = max(1, TOTAL_WIDTH_PX // n_years)          # integer px
-img_w     = stripe_px * n_years                        # may be a few px < TOTAL_WIDTH_PX
-img_h     = TOTAL_HEIGHT_PX
+img_w = STRIPE_PX * n_years        # overall width varies with years
+img_h = BAR_HEIGHT_PX
 
 img  = Image.new("RGB", (img_w, img_h), "white")
 draw = ImageDraw.Draw(img)
 
 for i, color in enumerate(sub_cols):
-    x0 = i * stripe_px
-    draw.rectangle([x0, 0, x0 + stripe_px, img_h], fill=color)
+    x0 = i * STRIPE_PX
+    draw.rectangle([x0, 0, x0 + STRIPE_PX, img_h], fill=color)
 
 # 4.  Display & download  -----------------------------------------
 st.title("Personal Climate-Stripes")
-st.caption("Source: NASA GISTEMP v4 (baseline 1951-1980)")
+st.caption("Source: NASA GISTEMP v4 (baseline 1951–1980)")
 
-st.image(img, use_container_width=True)        # fills Streamlit column
+# Allow horizontal scroll if bar wider than viewport
+st.image(img, use_container_width=False)
 
 st.download_button(
-    label="Download PNG",
+    "Download PNG",
     data=img.tobytes(),
     file_name=f"stripes_{start_year}_{end_year}.png",
     mime="image/png"
 )
+
 
