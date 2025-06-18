@@ -20,51 +20,57 @@ COLORS = [c for _, _, c in STRIPES]
 # 2.  Sidebar controls  ------------------------------------------
 st.sidebar.header("Stripe settings")
 
-STRIPE_PX = st.sidebar.number_input(
-    "Stripe width (px)", min_value=8, max_value=40, value=20, step=1
-)
 BAR_HEIGHT_PX = st.sidebar.number_input(
-    "Stripe height (px)", min_value=80, max_value=400, value=150, step=10
+    "Stripe height (px)", 80, 400, 150, step=10
 )
 
-# Year-range inputs
 st.sidebar.markdown("### Year range")
-year_min, year_max = YEARS[0], YEARS[-1]
+year_min, year_max = YEARS[0], YEARS[-1]          # list bounds
 
 start_year = st.sidebar.number_input(
-    "Start year", min_value=year_min, max_value=year_max,
-    value=year_min, step=1, format="%d"
+    "Start year", year_min, year_max, year_min, step=1, format="%d"
 )
 end_year = st.sidebar.number_input(
-    "End year", min_value=year_min, max_value=year_max,
-    value=year_max, step=1, format="%d"
+    "End year", year_min, year_max, year_max, step=1, format="%d"
 )
 
 if start_year > end_year:
     st.sidebar.error("Start year must be ≤ end year.")
     st.stop()
 
-# 3.  Build the image  -------------------------------------------
+# -----------------------------------------------------------------
+# 3.  Stripe geometry  --------------------------------------------
+LONGEST_YEARS     = year_max - 1880 + 1             # 145 years (1880–2024)
+REFERENCE_BAR_PX  = 1450                            # bar width if ALL years shown
+STRIPE_PX         = max(1, REFERENCE_BAR_PX // LONGEST_YEARS)
+# -> each stripe = 10 px when reference bar = 1450 px
+
+# Subset the colour list for the chosen period
 idx0 = YEARS.index(int(start_year))
 idx1 = YEARS.index(int(end_year)) + 1
 sub_cols = COLORS[idx0:idx1]
 n_years  = len(sub_cols)
 
-img_w = STRIPE_PX * n_years        # overall width varies with years
+# Overall image dimensions
+img_w = STRIPE_PX * n_years
 img_h = BAR_HEIGHT_PX
 
+# -----------------------------------------------------------------
+# 4.  Draw stripes  ------------------------------------------------
+from PIL import Image, ImageDraw
 img  = Image.new("RGB", (img_w, img_h), "white")
 draw = ImageDraw.Draw(img)
 
-for i, color in enumerate(sub_cols):
+for i, hex_col in enumerate(sub_cols):
     x0 = i * STRIPE_PX
-    draw.rectangle([x0, 0, x0 + STRIPE_PX, img_h], fill=color)
+    draw.rectangle([x0, 0, x0 + STRIPE_PX, img_h], fill=hex_col)
 
-# 4.  Display & download  -----------------------------------------
+# -----------------------------------------------------------------
+# 5.  Display & download  -----------------------------------------
 st.title("Personal Climate-Stripes")
-st.caption("Source: NASA GISTEMP v4 (baseline 1951–1980)")
+st.caption("Source: NASA GISTEMP v4 (baseline 1951-1980)")
 
-# Allow horizontal scroll if bar wider than viewport
+# Allow horizontal scrolling if bar wider than viewport
 st.image(img, use_container_width=False)
 
 st.download_button(
@@ -73,5 +79,6 @@ st.download_button(
     file_name=f"stripes_{start_year}_{end_year}.png",
     mime="image/png"
 )
+
 
 
