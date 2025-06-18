@@ -19,20 +19,34 @@ COLORS = [c for _, _, c in STRIPES]
 
 # 2.  Sidebar controls  ------------------------------------------
 st.sidebar.header("Stripe settings")
-width_px = st.sidebar.slider("Stripe width (pixels)", 8, 40, 20)
+
+width_px  = st.sidebar.slider("Stripe width (pixels)", 8, 40, 20)
 height_px = st.sidebar.slider("Stripe height (pixels)", 80, 300, 120)
 
-# Year subset selector
-yr_min, yr_max = st.sidebar.select_slider(
-    "Select year range",
-    options=YEARS,
-    value=(YEARS[0], YEARS[-1])
+# --- year-range inputs ------------------------------------------
+st.sidebar.markdown("### Year range")
+
+# valid bounds from the hard-coded list
+year_min, year_max = YEARS[0], YEARS[-1]
+
+start_year = st.sidebar.number_input(
+    "Start year", min_value=year_min, max_value=year_max,
+    value=year_min, step=1, format="%d"
 )
 
+end_year = st.sidebar.number_input(
+    "End year", min_value=year_min, max_value=year_max,
+    value=year_max, step=1, format="%d"
+)
+
+# guard against invalid input
+if start_year > end_year:
+    st.sidebar.error("Start year must be ≤ end year.")
+    st.stop()
+
 # 3.  Build the image  -------------------------------------------
-# Subset colours for chosen period
-idx0 = YEARS.index(yr_min)
-idx1 = YEARS.index(yr_max) + 1
+idx0 = YEARS.index(int(start_year))
+idx1 = YEARS.index(int(end_year)) + 1
 sub_cols = COLORS[idx0:idx1]
 n_stripes = len(sub_cols)
 
@@ -49,12 +63,12 @@ for i, hex_color in enumerate(sub_cols):
 st.title("Personal Climate-Stripes")
 st.caption("Source: NASA GISTEMP v4  (baseline 1951-1980)")
 
-st.image(img, use_column_width=True)
+st.image(img, use_container_width=True)   # updated param name
 
 # 5.  Download button  -------------------------------------------
 st.download_button(
-    label="Download PNG",
+    "Download PNG",
     data=img.tobytes(),
-    file_name=f"stripes_{yr_min}_{yr_max}.png",
+    file_name=f"stripes_{start_year}_{end_year}.png",
     mime="image/png"
 )
