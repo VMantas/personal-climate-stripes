@@ -67,7 +67,7 @@ for i, hex_col in enumerate(sub_cols):
 
 # -----------------------------------------------------------------
 # 5.  Display & download  -----------------------------------------
-st.title("Personal Climate-Stripes")
+st.title("Personal Climate Stripes")
 st.caption("Source: NASA GISTEMP v4 (baseline 1951-1980)")
 
 # Allow horizontal scrolling if bar wider than viewport
@@ -76,7 +76,7 @@ st.image(img, use_container_width=False)
 st.download_button(
     "Download PNG",
     data=img.tobytes(),
-    file_name=f"stripes_{start_year}_{end_year}.png",
+    file_name=f"stripes_{start_year}_{end_year}.jpg",
     mime="image/png"
 )
 
